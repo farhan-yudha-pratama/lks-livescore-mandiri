@@ -74,7 +74,7 @@ export default function AdminScorePage() {
     const sanitized = val.trim().replace(",", ".");
     const num = parseFloat(sanitized);
     if (isNaN(num)) return 0;
-    return Math.max(0, Math.min(100, Math.round(num * 10) / 10));
+    return Math.max(0, Math.round(num * 10) / 10);
   };
 
   const handleCreate = (e: React.FormEvent) => {

@@ -63,7 +63,7 @@ app.prepare().then(async () => {
           const currentVal = target[payload.field] ?? 0;
           const nextVal = Math.max(
             0,
-            Math.min(100, Math.round((currentVal + payload.delta) * 10) / 10)
+            Math.round((currentVal + payload.delta) * 10) / 10
           );
           await ScoreStore.updateScore(payload.id, {
             [payload.field]: nextVal,

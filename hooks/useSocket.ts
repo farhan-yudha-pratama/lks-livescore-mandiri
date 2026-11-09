@@ -119,7 +119,7 @@ export function useSocket() {
         if (target) {
           const nextVal = Math.max(
             0,
-            Math.min(100, Math.round(((target[field] ?? 0) + delta) * 10) / 10)
+            Math.round(((target[field] ?? 0) + delta) * 10) / 10
           );
           updateScore(id, { [field]: nextVal });
         }

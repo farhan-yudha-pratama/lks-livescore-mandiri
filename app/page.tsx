@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSocket } from "@/hooks/useSocket";
 import {
   Trophy,
   Award,
   Medal,
-  Activity,
   Radio,
   Search,
   SlidersHorizontal,
@@ -16,11 +15,62 @@ import {
   Gauge,
   Disc3,
   Zap,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 
 export default function HomePage() {
   const { scores, connectionState, recentlyUpdatedId } = useSocket();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Sync state dengan event fullscreenchange browser
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  // Fungsi toggle fullscreen
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error("Gagal masuk mode fullscreen:", err);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch((err) => {
+          console.error("Gagal keluar mode fullscreen:", err);
+        });
+      }
+    }
+  }, []);
+
+  // Shortcut keyboard: Tekan 'F' untuk toggle Fullscreen
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Abaikan jika sedang mengetik di input pencarian
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [toggleFullscreen]);
 
   const filteredScores = useMemo(() => {
     if (!searchQuery.trim()) return scores;
@@ -32,25 +82,23 @@ export default function HomePage() {
     );
   }, [scores, searchQuery]);
 
-  const topScore = scores.length > 0 ? scores[0] : null;
-  const avgTotal =
-    scores.length > 0
-      ? (
-          scores.reduce((acc, curr) => acc + curr.totalNilai, 0) / scores.length
-        ).toFixed(1)
-      : "0";
-
   return (
     <div className="min-h-screen bg-[#07090e] text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-200">
       {/* Background Ambience Subtle Grid */}
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(59,130,246,0.15),rgba(255,255,255,0))] z-0" />
       <div className="fixed inset-0 pointer-events-none bg-[linear-gradient(to_right,#1f293708_1px,transparent_1px),linear-gradient(to_bottom,#1f293708_1px,transparent_1px)] bg-[size:4rem_4rem] z-0" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <div
+        className={`relative z-10 mx-auto py-6 sm:py-8 transition-all duration-300 ${
+          isFullscreen
+            ? "max-w-[96vw] px-4 sm:px-6"
+            : "max-w-7xl px-4 sm:px-6 lg:px-8"
+        }`}
+      >
         {/* Top Header Bar */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-slate-800/80">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 sm:pb-8 border-b border-slate-800/80">
           <div className="space-y-1.5">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide bg-blue-500/10 text-blue-400 border border-blue-500/20">
                 <Flame className="w-3.5 h-3.5 text-blue-400" />
                 LOMBA KOMPETENSI SISWA (LKS)
@@ -93,93 +141,58 @@ export default function HomePage() {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white flex items-center gap-3">
               Live Scoreboard
             </h1>
-            <p className="text-sm sm:text-base text-slate-400 max-w-2xl font-normal">
+            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
               Bidang Lomba:{" "}
               <span className="text-slate-200 font-medium">
                 Teknik Kendaraan Ringan Otomotif (TKRO)
               </span>{" "}
-              — Penilaian Pos ETU, Sistem Rem, dan Electrical Body.
+              — Pos ETU, Sistem Rem, dan Electrical Body.
             </p>
           </div>
 
-          {/* Action to Admin / Input Page */}
-          <div className="flex items-center gap-3">
+          {/* Action Buttons: Fullscreen & Link to Admin */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {/* Tombol Full Screen */}
+            <button
+              onClick={toggleFullscreen}
+              className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm border shadow-lg shadow-black/40 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                isFullscreen
+                  ? "bg-emerald-950/80 hover:bg-emerald-900 border-emerald-500/40 text-emerald-300"
+                  : "bg-slate-800 hover:bg-slate-700 border-slate-700/80 text-white"
+              }`}
+              title={
+                isFullscreen
+                  ? "Keluar dari Layar Penuh (Tekan Esc atau F)"
+                  : "Buka Layar Penuh (Tekan F)"
+              }
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize2 className="w-4 h-4 text-emerald-400" />
+                  <span className="hidden sm:inline">Keluar Fullscreen</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="w-4 h-4 text-emerald-400" />
+                  <span className="hidden sm:inline">Layar Penuh</span>
+                </>
+              )}
+            </button>
+
+            {/* Link ke Panel Input Nilai */}
             <Link
               href="/admin"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-sm border border-slate-700/80 shadow-lg shadow-black/40 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-sm border border-slate-700/80 shadow-lg shadow-black/40 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <SlidersHorizontal className="w-4 h-4 text-amber-400" />
               <span>Panel Input Nilai</span>
-              <ArrowUpRight className="w-4 h-4 text-slate-400" />
+              <ArrowUpRight className="w-4 h-4 text-slate-400 hidden sm:inline" />
             </Link>
           </div>
         </header>
 
-        {/* Highlight KPI Cards */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 my-8">
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900/90 to-slate-900/40 border border-slate-800/80 shadow-xl shadow-black/20">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs uppercase tracking-wider font-semibold">
-                Pemimpin Klasemen
-              </span>
-              <Trophy className="w-4 h-4 text-amber-400" />
-            </div>
-            <div className="text-xl sm:text-2xl font-bold text-white truncate">
-              {topScore ? topScore.namaSiswa : "—"}
-            </div>
-            <div className="text-xs text-amber-400/90 truncate mt-1">
-              {topScore ? topScore.namaSekolah : "Menunggu data"}
-            </div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900/90 to-slate-900/40 border border-slate-800/80 shadow-xl shadow-black/20">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs uppercase tracking-wider font-semibold">
-                Skor Tertinggi
-              </span>
-              <Activity className="w-4 h-4 text-emerald-400" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black font-mono text-emerald-400">
-              {topScore ? topScore.totalNilai.toFixed(1) : "0.0"}
-            </div>
-            <div className="text-xs text-slate-400 mt-1">
-              dari maks 300.0 poin
-            </div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900/90 to-slate-900/40 border border-slate-800/80 shadow-xl shadow-black/20">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs uppercase tracking-wider font-semibold">
-                Total Kontingen
-              </span>
-              <Award className="w-4 h-4 text-blue-400" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black font-mono text-white">
-              {scores.length}
-            </div>
-            <div className="text-xs text-slate-400 mt-1">
-              Peserta terdaftar di sistem
-            </div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900/90 to-slate-900/40 border border-slate-800/80 shadow-xl shadow-black/20">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs uppercase tracking-wider font-semibold">
-                Rata-rata Skor
-              </span>
-              <Radio className="w-4 h-4 text-indigo-400" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black font-mono text-indigo-300">
-              {avgTotal}
-            </div>
-            <div className="text-xs text-slate-400 mt-1">
-              Performa rata-rata pos
-            </div>
-          </div>
-        </section>
-
         {/* Search & Legend Filter Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 my-6">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
@@ -192,10 +205,10 @@ export default function HomePage() {
           </div>
 
           {/* Pos Indicator Legend */}
-          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-400">
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-300 border border-blue-500/20">
               <Gauge className="w-3.5 h-3.5 text-blue-400" />
-              Pos 1: ETU (Engine Tune Up)
+              Pos 1: ETU
             </span>
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20">
               <Disc3 className="w-3.5 h-3.5 text-amber-400" />
@@ -297,9 +310,7 @@ export default function HomePage() {
                           <div className="flex flex-col">
                             <span
                               className={`text-base font-bold tracking-tight ${
-                                isRank1
-                                  ? "text-amber-200"
-                                  : "text-white"
+                                isRank1 ? "text-amber-200" : "text-white"
                               }`}
                             >
                               {item.namaSiswa}
@@ -312,53 +323,23 @@ export default function HomePage() {
 
                         {/* Post ETU */}
                         <td className="py-4 px-4 sm:px-6 text-center">
-                          <div className="inline-flex flex-col items-center">
-                            <span className="font-mono text-base font-bold text-blue-300">
-                              {item.postEtu.toFixed(1)}
-                            </span>
-                            <div className="w-20 bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1">
-                              <div
-                                className="bg-blue-500 h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${Math.min(100, item.postEtu)}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
+                          <span className="font-mono text-base sm:text-lg font-bold text-blue-300">
+                            {item.postEtu.toFixed(1)}
+                          </span>
                         </td>
 
                         {/* Post Sistem Rem */}
                         <td className="py-4 px-4 sm:px-6 text-center">
-                          <div className="inline-flex flex-col items-center">
-                            <span className="font-mono text-base font-bold text-amber-300">
-                              {item.postSistemRem.toFixed(1)}
-                            </span>
-                            <div className="w-20 bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1">
-                              <div
-                                className="bg-amber-500 h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${Math.min(100, item.postSistemRem)}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
+                          <span className="font-mono text-base sm:text-lg font-bold text-amber-300">
+                            {item.postSistemRem.toFixed(1)}
+                          </span>
                         </td>
 
                         {/* Post El. Body */}
                         <td className="py-4 px-4 sm:px-6 text-center">
-                          <div className="inline-flex flex-col items-center">
-                            <span className="font-mono text-base font-bold text-cyan-300">
-                              {item.postElBody.toFixed(1)}
-                            </span>
-                            <div className="w-20 bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1">
-                              <div
-                                className="bg-cyan-500 h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${Math.min(100, item.postElBody)}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
+                          <span className="font-mono text-base sm:text-lg font-bold text-cyan-300">
+                            {item.postElBody.toFixed(1)}
+                          </span>
                         </td>
 
                         {/* Total Score */}
@@ -378,7 +359,7 @@ export default function HomePage() {
                               {item.totalNilai.toFixed(1)}
                             </span>
                             <span className="text-[10px] text-slate-500 font-mono">
-                              / 300.0 maks
+                              Total Poin
                             </span>
                           </div>
                         </td>
@@ -397,7 +378,8 @@ export default function HomePage() {
               peserta lomba.
             </span>
             <span className="font-mono text-[11px] text-slate-400">
-              Pembaruan data otomatis melalui WebSocket tanpa refresh halaman.
+              Tekan tombol <span className="text-amber-400 font-bold">F</span>{" "}
+              pada keyboard untuk membuka layar penuh (Full Screen).
             </span>
           </div>
         </div>
