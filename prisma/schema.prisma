@@ -1,0 +1,25 @@
+// Prisma schema for LKS Live Score Dashboard (Single Table - PostgreSQL)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model LiveScore {
+  id            String   @id @default(uuid()) @db.Uuid
+  namaSekolah   String   @map("nama_sekolah") @db.VarChar(100)
+  namaSiswa     String   @map("nama_siswa") @db.VarChar(100)
+  postEtu       Float    @default(0) @map("post_etu")
+  postSistemRem Float    @default(0) @map("post_sistem_rem")
+  postElBody    Float    @default(0) @map("post_el_body")
+  totalNilai    Float    @default(0) @map("total_nilai")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([totalNilai(sort: Desc)])
+  @@map("live_scores")
+}

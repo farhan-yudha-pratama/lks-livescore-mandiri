@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lks-livescore-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      # Hubungkan ke PostgreSQL global di VPS
+      - DATABASE_URL=${DATABASE_URL:-postgresql://lks_user:MamanRacingLksUser2026@global-postgres-db:5432/lks_livescore_db?schema=public}
+    extra_hosts:
+      # Memungkinkan container mengakses host VPS jika diperlukan
+      - "host.docker.internal:host-gateway"
