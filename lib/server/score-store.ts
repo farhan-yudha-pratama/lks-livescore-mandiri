@@ -2,69 +2,8 @@ import { prisma } from "../db/prisma";
 import { LiveScoreItem } from "../types/score";
 import type { Server as SocketIOServer } from "socket.io";
 
-// Initial seed data for immediate demonstration & fallback if DB offline
-const INITIAL_SCORES: LiveScoreItem[] = [
-  {
-    id: "a1111111-1111-4111-8111-111111111111",
-    namaSiswa: "Ahmad Rifai",
-    namaSekolah: "SMKN 2 Surabaya",
-    postEtu: 94,
-    postSistemRem: 91,
-    postElBody: 95,
-    totalNilai: 280,
-    rank: 1,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "b2222222-2222-4222-8222-222222222222",
-    namaSiswa: "Budi Santoso",
-    namaSekolah: "SMKN 1 Jakarta",
-    postEtu: 90,
-    postSistemRem: 93,
-    postElBody: 89,
-    totalNilai: 272,
-    rank: 2,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "c3333333-3333-4333-8333-333333333333",
-    namaSiswa: "Dedi Pratama",
-    namaSekolah: "SMKN 5 Bandung",
-    postEtu: 88,
-    postSistemRem: 86,
-    postElBody: 92,
-    totalNilai: 266,
-    rank: 3,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "d4444444-4444-4444-8444-444444444444",
-    namaSiswa: "Fajar Hidayat",
-    namaSekolah: "SMKN 2 Yogyakarta",
-    postEtu: 85,
-    postSistemRem: 89,
-    postElBody: 87,
-    totalNilai: 261,
-    rank: 4,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "e5555555-5555-4555-8555-555555555555",
-    namaSiswa: "Rian Saputra",
-    namaSekolah: "SMKN 3 Semarang",
-    postEtu: 82,
-    postSistemRem: 84,
-    postElBody: 88,
-    totalNilai: 254,
-    rank: 5,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+// Initial empty store (no dummy data)
+const INITIAL_SCORES: LiveScoreItem[] = [];
 
 declare global {
   // eslint-disable-next-line no-var
@@ -77,7 +16,7 @@ declare global {
 
 export class ScoreStore {
   private static memoryStore: LiveScoreItem[] =
-    globalThis.__scoreMemoryStore ?? [...INITIAL_SCORES];
+    globalThis.__scoreMemoryStore ?? [];
   private static dbAvailable: boolean | undefined = globalThis.__dbAvailable;
 
   static setSocketIO(io: SocketIOServer) {
@@ -111,23 +50,21 @@ export class ScoreStore {
         this.dbAvailable = true;
         globalThis.__dbAvailable = true;
 
-        if (records.length > 0) {
-          const mapped = records.map((r, idx) => ({
-            id: r.id,
-            namaSekolah: r.namaSekolah,
-            namaSiswa: r.namaSiswa,
-            postEtu: r.postEtu,
-            postSistemRem: r.postSistemRem,
-            postElBody: r.postElBody,
-            totalNilai: r.totalNilai,
-            rank: idx + 1,
-            createdAt: r.createdAt.toISOString(),
-            updatedAt: r.updatedAt.toISOString(),
-          }));
-          this.memoryStore = mapped;
-          globalThis.__scoreMemoryStore = mapped;
-          return mapped;
-        }
+        const mapped = records.map((r, idx) => ({
+          id: r.id,
+          namaSekolah: r.namaSekolah,
+          namaSiswa: r.namaSiswa,
+          postEtu: r.postEtu,
+          postSistemRem: r.postSistemRem,
+          postElBody: r.postElBody,
+          totalNilai: r.totalNilai,
+          rank: idx + 1,
+          createdAt: r.createdAt.toISOString(),
+          updatedAt: r.updatedAt.toISOString(),
+        }));
+        this.memoryStore = mapped;
+        globalThis.__scoreMemoryStore = mapped;
+        return mapped;
       } catch {
         // Mark DB as unavailable so we don't spam errors on every request
         this.dbAvailable = false;

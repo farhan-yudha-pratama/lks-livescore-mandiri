@@ -373,7 +373,9 @@ export default function AdminScorePage() {
         <div className="space-y-3 sm:space-y-4">
           {filteredScores.length === 0 ? (
             <div className="p-8 text-center bg-slate-900/60 rounded-2xl border border-slate-800 text-slate-500 text-sm">
-              Tidak ada data peserta yang cocok.
+              {scores.length === 0
+                ? "Belum ada data peserta. Klik tombol 'Tambah Peserta Baru' di atas untuk memasukkan peserta."
+                : "Tidak ada data peserta yang cocok dengan pencarian."}
             </div>
           ) : (
             filteredScores.map((item) => {

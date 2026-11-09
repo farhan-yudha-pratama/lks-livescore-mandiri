@@ -286,7 +286,9 @@ export default function HomePage() {
                       colSpan={6}
                       className="py-12 text-center text-slate-500 text-sm"
                     >
-                      Tidak ada data peserta yang cocok dengan pencarian.
+                      {scores.length === 0
+                        ? "Belum ada data peserta. Tambahkan peserta melalui Panel Input Nilai."
+                        : "Tidak ada data peserta yang cocok dengan pencarian."}
                     </td>
                   </tr>
                 ) : (
