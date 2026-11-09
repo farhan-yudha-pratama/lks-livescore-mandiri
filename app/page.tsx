@@ -17,12 +17,14 @@ import {
   Zap,
   Maximize2,
   Minimize2,
+  FileSpreadsheet,
 } from "lucide-react";
 
 export default function HomePage() {
   const { scores, connectionState, recentlyUpdatedId } = useSocket();
   const [searchQuery, setSearchQuery] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Sync state dengan event fullscreenchange browser
   useEffect(() => {
@@ -49,6 +51,20 @@ export default function HomePage() {
         });
       }
     }
+  }, []);
+
+  // Fungsi unduh Excel
+  const handleExportExcel = useCallback(() => {
+    setIsExporting(true);
+    const link = document.createElement("a");
+    link.href = "/api/scores/export";
+    link.setAttribute("download", "");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => {
+      setIsExporting(false);
+    }, 1200);
   }, []);
 
   // Shortcut keyboard: Tekan 'F' untuk toggle Fullscreen
@@ -150,8 +166,19 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Action Buttons: Fullscreen & Link to Admin */}
-          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+          {/* Action Buttons: Export Excel, Fullscreen & Link to Admin */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 flex-wrap sm:flex-nowrap">
+            {/* Tombol Export Excel */}
+            <button
+              onClick={handleExportExcel}
+              disabled={isExporting}
+              className="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 active:scale-95 text-white font-medium text-sm border border-emerald-500/40 shadow-lg shadow-emerald-950/40 transition-all hover:scale-[1.02] cursor-pointer disabled:opacity-50"
+              title="Unduh Rekapitulasi Nilai Format Excel (.xlsx)"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
+              <span>{isExporting ? "Mengekspor..." : "Export Excel"}</span>
+            </button>
+
             {/* Tombol Full Screen */}
             <button
               onClick={toggleFullscreen}

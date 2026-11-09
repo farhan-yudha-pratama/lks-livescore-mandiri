@@ -17,6 +17,7 @@ import {
   X,
   Search,
   Users,
+  FileSpreadsheet,
 } from "lucide-react";
 
 export default function AdminScorePage() {
@@ -39,6 +40,7 @@ export default function AdminScorePage() {
   const [postSistemRemStr, setPostSistemRemStr] = useState("80");
   const [postElBodyStr, setPostElBodyStr] = useState("80");
   const [isAdding, setIsAdding] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
   // State Edit Langsung
@@ -131,6 +133,20 @@ export default function AdminScorePage() {
     setTimeout(() => setFeedbackMsg(null), 3000);
   };
 
+  const handleExportExcel = () => {
+    setIsExporting(true);
+    const link = document.createElement("a");
+    link.href = "/api/scores/export";
+    link.setAttribute("download", "");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => {
+      setIsExporting(false);
+      showFeedback("Berkas Excel berhasil diekspor!");
+    }, 1200);
+  };
+
   return (
     <div className="min-h-screen bg-[#080b11] text-slate-100 antialiased p-3 sm:p-6 lg:p-8 selection:bg-amber-500/30">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
@@ -171,22 +187,36 @@ export default function AdminScorePage() {
               </p>
             </div>
 
-            <button
-              onClick={() => setIsAdding(!isAdding)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
-            >
-              {isAdding ? (
-                <>
-                  <X className="w-4 h-4" />
-                  <span>Tutup Form</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span>Tambah Peserta Baru</span>
-                </>
-              )}
-            </button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
+              {/* Tombol Export Excel */}
+              <button
+                onClick={handleExportExcel}
+                disabled={isExporting}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 active:scale-95 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-emerald-950/30 border border-emerald-500/40 transition-all cursor-pointer disabled:opacity-50"
+                title="Ekspor seluruh data nilai ke format Excel (.xlsx)"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
+                <span>{isExporting ? "Mengekspor..." : "Export Excel"}</span>
+              </button>
+
+              {/* Tombol Tambah Peserta */}
+              <button
+                onClick={() => setIsAdding(!isAdding)}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
+              >
+                {isAdding ? (
+                  <>
+                    <X className="w-4 h-4" />
+                    <span>Tutup Form</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span>Tambah Peserta Baru</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
