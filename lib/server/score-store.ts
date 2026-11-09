@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/db/prisma";
-import { LiveScoreItem } from "@/lib/types/score";
+import { prisma } from "../db/prisma";
+import { LiveScoreItem } from "../types/score";
 import type { Server as SocketIOServer } from "socket.io";
 
 // Initial seed data for immediate demonstration & fallback if DB offline

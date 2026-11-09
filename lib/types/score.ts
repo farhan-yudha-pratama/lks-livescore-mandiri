@@ -3,7 +3,7 @@ import {
   CreateScoreSchema,
   UpdateScoreSchema,
   QuickScoreAdjustSchema,
-} from "@/lib/validations/score";
+} from "../validations/score";
 
 export type CreateScoreInput = z.infer<typeof CreateScoreSchema>;
 export type UpdateScoreInput = z.infer<typeof UpdateScoreSchema>;
